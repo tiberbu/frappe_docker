@@ -140,6 +140,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Create apps.json
+        working-directory: ${{ github.workspace }}
         env:
           APP_REPO: ${{ inputs.app_repo }}
           APP_REF: ${{ inputs.app_ref }}
