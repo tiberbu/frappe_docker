@@ -246,7 +246,7 @@ jobs:
             FRAPPE_IMAGE_PREFIX=${{ inputs.frappe_image_prefix }}
             FRAPPE_PATH=${{ inputs.frappe_repo }}
             FRAPPE_BRANCH=${{ inputs.frappe_ref }}
-          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
+          # cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
           cache-to: type=gha,mode=max,scope=${{ env.CACHE_SCOPE }}
           platforms: ${{ inputs.platforms }}
           push: true
