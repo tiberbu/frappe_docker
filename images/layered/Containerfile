@@ -11,11 +11,19 @@ USER frappe
 
 RUN --mount=type=secret,id=apps_json,target=/opt/frappe/apps.json,uid=1000,gid=1000 \
   : "${CACHE_BUST}" && \
+  echo "=== apps.json debug ===" && \
+  ls -la /opt/frappe/ && \
+  echo "--- size ---" && \
+  wc -c /opt/frappe/apps.json 2>&1 || true && \
+  echo "--- first 300 bytes ---" && \
+  head -c 300 /opt/frappe/apps.json 2>&1 || true && \
+  echo "=======================" && \
   export APP_INSTALL_ARGS="" && \
   if [ -f /opt/frappe/apps.json ] && [ -s /opt/frappe/apps.json ]; then \
     export APP_INSTALL_ARGS="--apps_path=/opt/frappe/apps.json"; \
   fi && \
-  bench init ${APP_INSTALL_ARGS}\
+  echo "APP_INSTALL_ARGS=${APP_INSTALL_ARGS}" && \
+  bench init ${APP_INSTALL_ARGS} \
     --frappe-branch=${FRAPPE_BRANCH} \
     --frappe-path=${FRAPPE_PATH} \
     --no-procfile \
