@@ -4,16 +4,18 @@ services:
       - traefik.enable=true
       - traefik.http.services.frontend.loadbalancer.server.port=8080
       - traefik.http.routers.frontend-http.entrypoints=web
-      - traefik.http.routers.frontend-http.rule=HostRegexp(`{any:.+}`)
+      - traefik.http.routers.frontend-http.rule=HostRegexp(`^.+$`)
 
   proxy:
-    image: traefik:2.5
+    image: traefik:v3.7
+    restart: unless-stopped
     command:
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
+      - --entrypoints.web.http.underscoreHeadersStrategy=delete
     ports:
-      - 80:80
+      - ${HTTP_PUBLISH_PORT:-80}:80
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     userns_mode: host

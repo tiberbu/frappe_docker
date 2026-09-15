@@ -1,8 +1,6 @@
-version: "3.3"
-
 services:
   traefik:
-    image: "traefik:v2.6"
+    image: "traefik:v3.7"
     restart: unless-stopped
     labels:
       # Enable Traefik for this service, to make it available in the public network
@@ -28,6 +26,7 @@ services:
       - --providers.docker.exposedbydefault=false
       # Create an entrypoint http listening on port 80
       - --entrypoints.http.address=:80
+      - --entrypoints.http.http.underscoreHeadersStrategy=delete
       # Enable the access log, with HTTP requests
       - --accesslog
       # Enable the Traefik log, for configurations and errors
@@ -35,7 +34,7 @@ services:
       # Enable the Dashboard and API
       - --api
     ports:
-      - 80:80
+      - ${HTTP_PUBLISH_PORT:-80}:80
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
