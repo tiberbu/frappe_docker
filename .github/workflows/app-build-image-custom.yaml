@@ -178,7 +178,19 @@ jobs:
             exit 1
           fi
           echo "apps.json validated; $(jq 'length' "$APPS_JSON_PATH") apps listed"
-
+      - name: Verify apps_json file before build
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "APPS_JSON_PATH=$APPS_JSON_PATH"
+          echo "Absolute: $(realpath "$APPS_JSON_PATH")"
+          ls -la "$(dirname "$APPS_JSON_PATH")" || true
+          if [ ! -s "$APPS_JSON_PATH" ]; then
+            echo "::error::apps_json file is missing or empty"
+            exit 1
+          fi
+          echo "apps_json size: $(wc -c < "$APPS_JSON_PATH") bytes"
       - name: Build smoke-test image
         uses: docker/build-push-action@v6
         with:
