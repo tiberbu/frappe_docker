@@ -144,40 +144,39 @@ jobs:
           APP_REPO: ${{ inputs.app_repo }}
           APP_REF: ${{ inputs.app_ref }}
           APPS_JSON_BASE64: ${{ inputs.apps_json_base64 }}
-          # APPS_JSON_PATH: ${{ env.APPS_JSON_PATH }}
         run: |
+          set -euo pipefail
           mkdir -p "$(dirname "$APPS_JSON_PATH")"
 
-          if [ -n "$APPS_JSON_BASE64" ]; then
-            echo "Using provided apps_json_base64"
+          if [ -n "${APPS_JSON_BASE64:-}" ]; then
+            echo "Decoding apps_json_base64 (length ${#APPS_JSON_BASE64})..."
             printf '%s' "$APPS_JSON_BASE64" | base64 -d > "$APPS_JSON_PATH"
-            echo "--- apps.json content ---"
-            cat "$APPS_JSON_PATH"
-            echo "-------------------------"
-            exit 0
-          fi
-
-          echo "Building single-app apps.json from app_repo/app_ref"
-          python3 - <<'PY'
-          import json
-          import os
+          else
+            echo "Building single-app apps.json from app_repo/app_ref"
+            python3 - <<'PY'
+          import json, os
           from pathlib import Path
-
           repo = os.environ["APP_REPO"].strip()
-          ref = os.environ["APP_REF"].strip()
-
-          if repo.count("/") == 1 and not repo.startswith(("https://", "http://")):
+          ref  = os.environ["APP_REF"].strip()
+          if repo.count("/") == 1 and not repo.startswith(("https://","http://")):
               repo = f"https://github.com/{repo}"
-
-          for prefix in ("refs/heads/", "refs/tags/"):
-              if ref.startswith(prefix):
-                  ref = ref.removeprefix(prefix)
-
+          for p in ("refs/heads/","refs/tags/"):
+              if ref.startswith(p): ref = ref.removeprefix(p)
           Path(os.environ["APPS_JSON_PATH"]).write_text(
               json.dumps([{"url": repo, "branch": ref}], indent=2) + "\n",
-              encoding="utf-8",
-          )
+              encoding="utf-8")
           PY
+          fi
+
+          echo "--- apps.json content ---"
+          cat "$APPS_JSON_PATH"
+          echo "-------------------------"
+
+          if ! jq empty "$APPS_JSON_PATH"; then
+            echo "::error::apps.json is not valid JSON"
+            exit 1
+          fi
+          echo "apps.json validated; $(jq 'length' "$APPS_JSON_PATH") apps listed"
 
       - name: Build smoke-test image
         uses: docker/build-push-action@v6
