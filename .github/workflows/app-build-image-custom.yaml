@@ -144,7 +144,7 @@ jobs:
           APP_REPO: ${{ inputs.app_repo }}
           APP_REF: ${{ inputs.app_ref }}
           APPS_JSON_BASE64: ${{ inputs.apps_json_base64 }}
-          APPS_JSON_PATH: ${{ env.APPS_JSON_PATH }}
+          # APPS_JSON_PATH: ${{ env.APPS_JSON_PATH }}
         run: |
           mkdir -p "$(dirname "$APPS_JSON_PATH")"
 
