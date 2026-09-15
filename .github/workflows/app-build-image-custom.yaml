@@ -192,7 +192,7 @@ jobs:
           load: true
           platforms: linux/amd64
           secrets: |
-            id=apps_json,src=${{ env.APPS_JSON_PATH }}
+            id=apps_json,src=${{ github.workspace }}/${{ env.APPS_JSON_PATH }}
           tags: ${{ env.TEST_IMAGE }}
 
       - name: Smoke test image contents
@@ -251,5 +251,5 @@ jobs:
           platforms: ${{ inputs.platforms }}
           push: true
           secrets: |
-            id=apps_json,src=${{ env.APPS_JSON_PATH }}
+            id=apps_json,src=${{ github.workspace }}/${{ env.APPS_JSON_PATH }}
           tags: ${{ env.FINAL_IMAGE }}
