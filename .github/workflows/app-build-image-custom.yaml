@@ -226,8 +226,8 @@ jobs:
               echo "::error::apps.json contains no apps"
               exit 1
             fi
-            docker run --rm --entrypoint bash "$TEST_IMAGE" -lc \
-              "set -e; for app in $APPS; do test -d \"/home/frappe/frappe-bench/apps/\$app\" && echo \"found: \$app\" || { echo \"missing: \$app\"; exit 1; }; done"
+            docker run --rm -e APPS="$(echo $APPS)" --entrypoint bash "$TEST_IMAGE" -lc \
+              'set -e; for app in $APPS; do if test -d "/home/frappe/frappe-bench/apps/$app"; then echo "found: $app"; else echo "missing: $app"; exit 1; fi; done'
           fi
 
       - name: Configure AWS credentials
