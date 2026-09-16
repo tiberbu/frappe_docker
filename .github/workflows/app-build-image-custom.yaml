@@ -227,7 +227,7 @@ jobs:
               exit 1
             fi
             docker run --rm --entrypoint bash "$TEST_IMAGE" -lc \
-              "set -e; for app in $APPS; do test -d \"/home/frappe/frappe-bench/apps/$app\" && echo \"found: $app\" || { echo \"missing: $app\"; exit 1; }; done"
+              "set -e; for app in $APPS; do test -d \"/home/frappe/frappe-bench/apps/\$app\" && echo \"found: \$app\" || { echo \"missing: \$app\"; exit 1; }; done"
           fi
 
       - name: Configure AWS credentials
