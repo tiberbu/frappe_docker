@@ -201,26 +201,33 @@ jobs:
             FRAPPE_PATH=${{ inputs.frappe_repo }}
             FRAPPE_BRANCH=${{ inputs.frappe_ref }}
             CACHE_BUST=${{ github.run_id }}-${{ github.run_attempt }}
-          # cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
           cache-to: type=gha,mode=max,scope=${{ env.CACHE_SCOPE }}
           load: true
           platforms: linux/amd64
-          secrets: |
-            id=apps_json,src=${{ github.workspace }}/${{ env.APPS_JSON_PATH }}
+          secret-files: |
+            apps_json=${{ github.workspace }}/${{ env.APPS_JSON_PATH }}
           tags: ${{ env.TEST_IMAGE }}
 
       - name: Smoke test image contents
         env:
           APP_NAME: ${{ inputs.app_name }}
           TEST_IMAGE: ${{ env.TEST_IMAGE }}
+          APPS_JSON_PATH: ${{ github.workspace }}/${{ env.APPS_JSON_PATH }}
         run: |
+          set -euo pipefail
           if [ -n "$APP_NAME" ]; then
             docker run --rm --entrypoint bash "$TEST_IMAGE" -lc \
               "test -d /home/frappe/frappe-bench/apps/frappe && test -d /home/frappe/frappe-bench/apps/${APP_NAME}"
           else
-            echo "No app_name provided (multi-app build); running generic smoke test."
+            echo "No app_name provided (multi-app build); verifying all apps from apps.json."
+            APPS=$(jq -r '.[].url' "$APPS_JSON_PATH" | sed -e 's#^.*[/:]##' -e 's#\.git$##' | sort -u)
+            if [ -z "$APPS" ]; then
+              echo "::error::apps.json contains no apps"
+              exit 1
+            fi
             docker run --rm --entrypoint bash "$TEST_IMAGE" -lc \
-              "test -d /home/frappe/frappe-bench/apps/frappe"
+              "set -e; for app in $APPS; do test -d \"/home/frappe/frappe-bench/apps/$app\" && echo \"found: $app\" || { echo \"missing: $app\"; exit 1; }; done"
           fi
 
       - name: Configure AWS credentials
@@ -261,10 +268,10 @@ jobs:
             FRAPPE_PATH=${{ inputs.frappe_repo }}
             FRAPPE_BRANCH=${{ inputs.frappe_ref }}
             CACHE_BUST=${{ github.run_id }}-${{ github.run_attempt }}
-          # cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
           cache-to: type=gha,mode=max,scope=${{ env.CACHE_SCOPE }}
           platforms: ${{ inputs.platforms }}
           push: true
-          secrets: |
-            id=apps_json,src=${{ github.workspace }}/${{ env.APPS_JSON_PATH }}
+          secret-files: |
+            apps_json=${{ github.workspace }}/${{ env.APPS_JSON_PATH }}
           tags: ${{ env.FINAL_IMAGE }}

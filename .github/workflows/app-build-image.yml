@@ -142,8 +142,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ env.CACHE_SCOPE }}
           load: true
           platforms: linux/amd64
-          secrets: |
-            id=apps_json,src=${{ env.APPS_JSON_PATH }}
+          secret-files: |
+            apps_json=${{ env.APPS_JSON_PATH }}
           tags: ${{ env.TEST_IMAGE }}
 
       - name: Smoke test image contents
@@ -184,6 +184,6 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ env.CACHE_SCOPE }}
           platforms: ${{ inputs.platforms }}
           push: true
-          secrets: |
-            id=apps_json,src=${{ env.APPS_JSON_PATH }}
+          secret-files: |
+            apps_json=${{ env.APPS_JSON_PATH }}
           tags: ${{ env.FINAL_IMAGE }}
